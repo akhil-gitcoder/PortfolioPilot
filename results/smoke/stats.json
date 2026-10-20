@@ -1,0 +1,43 @@
+{
+  "data_source": "synthetic",
+  "n_seeds": 4,
+  "n_evals": 3000,
+  "ws_hv": 0.7969068457484897,
+  "seeds_RandomSearch_hv_greater_than_WS": 0,
+  "seeds_NSGA2_hv_greater_than_WS": 0,
+  "seeds_NSGA2+current_hv_greater_than_WS": 0,
+  "seeds_NSGA2+current+polish_hv_greater_than_WS": 0,
+  "MWU_NSGA2_vs_RandomSearch": {
+    "U": 0.0,
+    "p": 0.02857142857142857,
+    "median_diff": -0.03858946337558644
+  },
+  "MWU_NSGA2+current_vs_NSGA2": {
+    "U": 16.0,
+    "p": 0.02857142857142857,
+    "median_diff": 0.10236388764944515
+  },
+  "MWU_NSGA2+current+polish_vs_NSGA2+current": {
+    "U": 16.0,
+    "p": 0.02857142857142857,
+    "median_diff": 0.14121488533163518
+  },
+  "c_metric_median_run": {
+    "RandomSearch": {
+      "C(WS,method)": 1.0,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2": {
+      "C(WS,method)": 1.0,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2+current": {
+      "C(WS,method)": 0.76,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2+current+polish": {
+      "C(WS,method)": 0.4752475247524752,
+      "C(method,WS)": 0.0
+    }
+  }
+}

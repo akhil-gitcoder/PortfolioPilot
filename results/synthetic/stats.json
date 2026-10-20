@@ -1,0 +1,53 @@
+{
+  "data_source": "synthetic",
+  "n_seeds": 30,
+  "n_evals": 10000,
+  "ws_hv": 0.8871502795504778,
+  "seeds_RandomSearch_hv_greater_than_WS": 0,
+  "seeds_NSGA2_hv_greater_than_WS": 0,
+  "seeds_NSGA2+current_hv_greater_than_WS": 0,
+  "seeds_NSGA2-tuned_hv_greater_than_WS": 0,
+  "seeds_Hybrid_hv_greater_than_WS": 12,
+  "MWU_NSGA2_vs_RandomSearch": {
+    "U": 759.0,
+    "p": 5.091173485363367e-06,
+    "median_diff": 0.039940220069652255
+  },
+  "MWU_NSGA2+current_vs_NSGA2": {
+    "U": 900.0,
+    "p": 3.019859359162157e-11,
+    "median_diff": 0.12640527894515674
+  },
+  "MWU_NSGA2-tuned_vs_NSGA2+current": {
+    "U": 900.0,
+    "p": 3.019859359162157e-11,
+    "median_diff": 0.13518631566825612
+  },
+  "MWU_Hybrid_vs_NSGA2-tuned": {
+    "U": 900.0,
+    "p": 3.019859359162157e-11,
+    "median_diff": 0.07952793967891703
+  },
+  "c_metric_median_run": {
+    "RandomSearch": {
+      "C(WS,method)": 0.9642857142857143,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2": {
+      "C(WS,method)": 0.9393939393939394,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2+current": {
+      "C(WS,method)": 0.8080808080808081,
+      "C(method,WS)": 0.0
+    },
+    "NSGA2-tuned": {
+      "C(WS,method)": 0.53,
+      "C(method,WS)": 0.0
+    },
+    "Hybrid": {
+      "C(WS,method)": 0.2190082644628099,
+      "C(method,WS)": 0.0
+    }
+  }
+}

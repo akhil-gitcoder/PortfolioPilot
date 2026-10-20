@@ -1,0 +1,2 @@
+# Problem statement
+An investor holds a portfolio `x_old` of NSE stocks and wants to rebalance. Three conflicting goals: higher expected return, lower volatility, lower trading cost. There is no single best answer, so the output is a Pareto front of portfolios plus a way to pick one. The cost objective makes "do nothing" and "move far" both visible trade-offs. Real constraints (limit per stock, per sector, number of holdings, minimum position size) make the problem non-convex.

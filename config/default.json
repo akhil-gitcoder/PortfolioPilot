@@ -1,0 +1,53 @@
+{
+  "data": {
+    "source": "synthetic",
+    "synthetic_prices_csv": "data/synthetic_prices.csv",
+    "real_prices_csv": "data/prices_real.csv",
+    "universe_csv": "config/universe.csv",
+    "estimation_days": 756,
+    "cov_estimator": "ledoit_wolf",
+    "synthetic_seed": 2026,
+    "synthetic_years": 6
+  },
+  "costs": {
+    "buy_rate": 0.0012,
+    "sell_rate": 0.0013,
+    "cost_multiplier": 1.0
+  },
+  "constraints": {
+    "x_max": 0.2,
+    "sector_cap": 0.4,
+    "K": 10,
+    "l_min": 0.03,
+    "turnover_cap": null,
+    "key_threshold": 0.1
+  },
+  "current_portfolio": {
+    "scenario": "concentrated",
+    "holdings": {
+      "RELIANCE.NS": 0.2,
+      "TCS.NS": 0.2,
+      "HDFCBANK.NS": 0.2,
+      "ITC.NS": 0.15,
+      "SBIN.NS": 0.15,
+      "LT.NS": 0.1
+    }
+  },
+  "nsga2": {
+    "pop_size": 100,
+    "n_evals": 10000,
+    "eta_c": 15,
+    "eta_m": 20,
+    "pc": 0.9,
+    "reset_prob": 1.0
+  },
+  "experiment": {
+    "seeds": 30,
+    "validation_seeds": 10,
+    "ws_step": 0.1,
+    "checkpoint_every_evals": 500,
+    "hv_ref": 1.1,
+    "base_seed": 1000
+  },
+  "output_dir": "results"
+}

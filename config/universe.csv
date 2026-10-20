@@ -1,0 +1,31 @@
+ticker,name,sector
+HDFCBANK.NS,HDFC Bank,Financials
+ICICIBANK.NS,ICICI Bank,Financials
+SBIN.NS,State Bank of India,Financials
+KOTAKBANK.NS,Kotak Mahindra Bank,Financials
+AXISBANK.NS,Axis Bank,Financials
+TCS.NS,Tata Consultancy Services,IT
+INFY.NS,Infosys,IT
+WIPRO.NS,Wipro,IT
+HCLTECH.NS,HCL Technologies,IT
+HINDUNILVR.NS,Hindustan Unilever,FMCG
+ITC.NS,ITC,FMCG
+NESTLEIND.NS,Nestle India,FMCG
+BRITANNIA.NS,Britannia Industries,FMCG
+RELIANCE.NS,Reliance Industries,Energy_Power
+ONGC.NS,Oil and Natural Gas Corp,Energy_Power
+NTPC.NS,NTPC,Energy_Power
+POWERGRID.NS,Power Grid Corp,Energy_Power
+COALINDIA.NS,Coal India,Energy_Power
+MARUTI.NS,Maruti Suzuki,Auto
+M&M.NS,Mahindra and Mahindra,Auto
+EICHERMOT.NS,Eicher Motors,Auto
+SUNPHARMA.NS,Sun Pharma,Pharma
+DRREDDY.NS,Dr Reddys Laboratories,Pharma
+CIPLA.NS,Cipla,Pharma
+TATASTEEL.NS,Tata Steel,Materials
+HINDALCO.NS,Hindalco Industries,Materials
+ULTRACEMCO.NS,UltraTech Cement,Materials
+ASIANPAINT.NS,Asian Paints,Materials
+LT.NS,Larsen and Toubro,Infra_Telecom
+BHARTIARTL.NS,Bharti Airtel,Infra_Telecom

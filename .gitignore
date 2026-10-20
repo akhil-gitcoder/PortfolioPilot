@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+.env
+*.egg-info/
+build/
+dist/
+.DS_Store
+.idea/
+.vscode/
+# raw per-run arrays can be regenerated; keep summaries
+results/**/raw/
