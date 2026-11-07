@@ -1,3 +1,4 @@
+
 {
   "data": {
     "source": "synthetic",
@@ -10,8 +11,8 @@
     "synthetic_years": 6
   },
   "costs": {
-    "buy_rate": 0.0012,
-    "sell_rate": 0.0013,
+    "buy_rate": 0.00119,
+    "sell_rate": 0.00104,
     "cost_multiplier": 1.0
   },
   "constraints": {
