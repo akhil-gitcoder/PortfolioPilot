@@ -6,3 +6,4 @@ scikit-learn>=1.5
 cvxpy>=1.5
 yfinance>=0.2.40
 pytest>=8.0
+tabulate>=0.9
