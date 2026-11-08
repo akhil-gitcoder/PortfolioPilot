@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PortfolioPilot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one calm console column. Header + tabs, then numbered steps. Chart and option detail are the focus.
+   Colour: cool paper, ink text, teal = "good/selected", rust = cost and warnings only. */
+:root {
+  --bg: #F2F5F6; --surface: #FFFFFF; --surface2: #E9EEF0; --line: #D5DDE1;
+  --ink: #15262F; --ink2: #4A5B64; --ink3: #6B7B84;
+  --teal: #1B6B73; --teal-soft: #DDEEEF; --rust: #B0452C; --rust-soft: #F8E9E4;
+  --good: #1E7A4C; --bad: #B0452C;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1A20; --surface: #16252D; --surface2: #1D3039; --line: #2B424D;
+  --ink: #E6EEF1; --ink2: #A9BAC2; --ink3: #8497A1;
+  --teal: #5FC0C8; --teal-soft: #17383D; --rust: #F0916F; --rust-soft: #3A2620;
+  --good: #6FD39C; --bad: #F0916F; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0F1A20; --surface: #16252D; --surface2: #1D3039; --line: #2B424D;
+  --ink: #E6EEF1; --ink2: #A9BAC2; --ink3: #8497A1;
+  --teal: #5FC0C8; --teal-soft: #17383D; --rust: #F0916F; --rust-soft: #3A2620;
+  --good: #6FD39C; --bad: #F0916F; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5;
+  padding-block: 40px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3, h4, p { margin: 0; }
+h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; }
+h2 { font-size: 20px; font-weight: 600; text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 600; }
+.sub { color: var(--ink2); }
+.num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+.top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.preview-tag { background: var(--rust-soft); color: var(--ink); border: 1px dashed var(--rust); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 18px; font: inherit; color: var(--ink2); cursor: pointer; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--teal); font-weight: 600; }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+.panel { display: flex; flex-direction: column; gap: 56px; }
+.step { display: flex; flex-direction: column; gap: 22px; }
+.step-head { display: flex; align-items: baseline; gap: 12px; }
+.step-head .k { font-family: var(--mono); font-size: 13px; color: var(--ink3); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 28px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 28px; }
+label { font-size: 14px; color: var(--ink2); display: block; margin-bottom: 4px; }
+input[type="number"] { font: inherit; font-family: var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%; }
+.tbl-scroll { overflow-x: auto; max-height: 260px; overflow-y: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--ink3); font-weight: 500; font-size: 13px; position: sticky; top: 0; background: var(--surface); }
+td.r, th.r { text-align: right; }
+.btn { font: inherit; font-weight: 600; background: var(--teal); color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; cursor: pointer; }
+:root[data-theme="dark"] .btn { color: #0F1A20; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn { color: #0F1A20; } }
+.btn:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .6; cursor: progress; }
+.banner { border-radius: 10px; padding: 16px 22px; font-size: 15px; }
+.banner.snap { background: var(--teal-soft); }
+.banner.warn { background: var(--rust-soft); }
+.banner.ok { background: var(--teal-soft); color: var(--ink); }
+.placeholder { border: 1px dashed var(--line); border-radius: 12px; padding: 40px; color: var(--ink2); text-align: center; }
+.spin { display: inline-block; width: 16px; height: 16px; border: 3px solid var(--line); border-top-color: var(--teal); border-radius: 50%; animation: sp 0.8s linear infinite; vertical-align: -3px; margin-right: 8px; }
+@keyframes sp { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+.kbox { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+input[type="range"] { accent-color: var(--teal); width: 220px; max-width: 100%; }
+.chart-card { position: relative; padding: 20px; }
+svg text { font-family: var(--sans); fill: var(--ink2); }
+svg .dot { cursor: pointer; }
+svg .dot:focus-visible { outline: none; }
+svg .dot:focus-visible circle.ring { stroke: var(--ink); stroke-width: 3; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); border-radius: 8px; padding: 8px 12px; font-size: 13px; line-height: 1.45; z-index: 5; box-shadow: 0 4px 14px rgba(0,0,0,.25); max-width: 240px; }
+.cmp-scroll { overflow-x: auto; }
+.cmp th, .cmp td { white-space: nowrap; }
+.cmp td:first-child, .cmp th:first-child { position: sticky; left: 0; background: var(--surface); color: var(--ink2); }
+.cmp th.sel, .cmp td.sel { background: var(--teal-soft); }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.opt { text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+.opt .n { font-family: var(--mono); font-size: 12px; color: var(--ink3); }
+.opt .l { font-weight: 600; }
+.opt .v { font-size: 13px; color: var(--ink2); }
+.opt[aria-pressed="true"] { border-color: var(--teal); box-shadow: inset 0 0 0 2px var(--teal); background: var(--teal-soft); }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 24px; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.metric .t { font-size: 13px; color: var(--ink3); }
+.metric .big { font-family: var(--mono); font-size: 26px; font-weight: 500; }
+.metric .d { font-size: 13px; }
+.good { color: var(--good); } .bad { color: var(--bad); } .muted { color: var(--ink3); }
+.detail { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px; }
+.detail p + p { margin-top: 16px; }
+.detail b.k { font-weight: 600; }
+.bars { display: flex; flex-direction: column; gap: 12px; }
+.brow { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 13px; }
+.brow .nm { text-align: right; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar { height: 7px; border-radius: 4px; margin: 2px 0; }
+.bar.now { background: var(--line); } .bar.sug { background: var(--teal); }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+.pill.buy { background: var(--teal-soft); color: var(--teal); } .pill.sell { background: var(--rust-soft); color: var(--rust); } .pill.hold { background: var(--surface2); color: var(--ink2); }
+details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 18px 24px; }
+details summary { cursor: pointer; font-weight: 500; }
+details[open] summary { margin-bottom: 14px; }
+details ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+.theme-btn { background: var(--surface); color: var(--ink2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+@media (max-width: 760px) { .grid2, .detail { grid-template-columns: minmax(0, 1fr); } h1 { font-size: 24px; } .brow { grid-template-columns: 100px minmax(0, 1fr); } }
+select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; }
+.btn.ghost { background: transparent; color: var(--teal); border: 1px solid var(--teal); padding: 9px 16px; font-weight: 500; }
+td input.hin { width: 90px; text-align: right; padding: 5px 8px; font-size: 14px; }
+.banner.err { background: var(--rust-soft); border: 1px solid var(--rust); }
+[hidden] { display: none !important; }
+body { margin: 0; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>PortfolioPilot</h1>
+      <p class="sub">Rebalance an Indian-stock portfolio: see your best options for return, risk and trading cost, and what each one means.</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="t-main" aria-selected="true" aria-controls="p-main" type="button">Rebalance</button>
+    <button class="tab" role="tab" id="t-ev" aria-selected="false" aria-controls="p-ev" type="button">How good is it? (evidence)</button>
+    <button class="tab" role="tab" id="t-ab" aria-selected="false" aria-controls="p-ab" type="button">About and limits</button>
+  </div>
+
+  <!-- ============== REBALANCE ============== -->
+  <section class="panel" id="p-main" role="tabpanel" aria-labelledby="t-main">
+    <div class="step">
+      <div class="step-head"><span class="k">STEP 1</span><h2>Your current portfolio</h2></div>
+      <div class="grid2">
+        <div class="card">
+          <label for="amt">Money invested (₹)</label>
+          <input type="number" id="amt" min="10000" step="100000" value="1000000">
+          <p class="sub num" id="amtFmt" style="margin-top:6px;font-size:14px"></p>
+          <label for="src" style="margin-top:20px">Market prices</label>
+          <select id="src"></select>
+          <p style="margin-top:12px"><button class="btn ghost" id="refresh" type="button">Download latest prices</button></p>
+          <p class="sub" id="refMsg" aria-live="polite" style="margin-top:8px;font-size:14px">Needs internet. If it fails, the saved prices keep working.</p>
+        </div>
+        <div class="card">
+          <p class="sub" style="font-size:14px;margin-bottom:8px">Edit the “Holding (%)” column to match what you own. It is scaled to 100% if it does not add up. The starting values are a made-up example.</p>
+          <div class="tbl-scroll"><table id="holdTbl"><thead><tr><th>Stock</th><th>Sector</th><th class="r">Holding (%)</th></tr></thead><tbody></tbody></table></div>
+          <p class="sub num" id="holdTotal" style="margin-top:10px;font-size:14px"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="k">STEP 2</span><h2>Rebalance</h2></div>
+      <div><button class="btn" id="go" type="button">Rebalance my portfolio</button></div>
+      <div id="status" aria-live="polite"></div>
+      <div class="placeholder" id="empty">Press <b>Rebalance my portfolio</b>. The app freezes the prices, searches thousands of portfolios, and shows a short list of options with an explanation of each.</div>
+    </div>
+
+    <div id="results" hidden class="panel">
+      <div class="banner snap" id="snapBanner"></div>
+      <div class="banner warn"><b>Read the returns with care.</b> “Expected return” is an estimate from past prices. In the project’s own 15-quarter back-test the estimates were far too optimistic (about 32% a year predicted against about 18% earned), and no optimised portfolio beat a simple equal split. Use the options to compare <i>risk and trade-offs</i>, not as a forecast.</div>
+
+      <div class="step">
+        <div class="step-head"><span class="k">STEP 3</span><h2>Your options</h2></div>
+        <div class="kbox">
+          <label for="k" style="margin:0">How many options do you want to choose from?</label>
+          <input type="range" id="k" min="3" max="6" step="1" value="5">
+          <b class="num" id="kVal">5</b>
+        </div>
+        <p id="foundTxt" class="sub"></p>
+        <div class="card chart-card" id="chartCard">
+          <svg id="chart" viewBox="0 0 900 460" width="100%" role="img" aria-label="Chart of the options by risk and expected return"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="card cmp-scroll"><table class="cmp" id="cmp"></table></div>
+        <p class="sub" style="font-size:14px">“Rough bad-year result” is expected return minus one risk step. It describes roughly 1 year in 6 and is a rule of thumb, not a guarantee.</p>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="k">STEP 4</span><h2>What each option means</h2></div>
+        <div class="opts" id="optBtns" role="group" aria-label="Choose an option"></div>
+        <div class="card" id="detail"></div>
+      </div>
+
+      <div class="banner ok" id="rules"></div>
+      <details><summary>Why these options? (and what we left out)</summary><ul id="why"></ul></details>
+      <details><summary>Plain-English glossary</summary><ul>
+        <li><b>Expected return:</b> the yearly gain the past data suggests. An estimate, not a promise.</li>
+        <li><b>Risk:</b> how much the value usually swings in a year. Higher means a bumpier ride.</li>
+        <li><b>Cost to trade:</b> brokerage and charges to move from today’s holdings to the option (estimated rates: 0.119% on buys, 0.104% on sells).</li>
+        <li><b>Pareto front:</b> the portfolios where you cannot get more of one thing without giving up another.</li>
+        <li><b>Balanced:</b> the option closest to the ideal on all three goals at once.</li></ul></details>
+    </div>
+  </section>
+
+  <!-- ============== EVIDENCE ============== -->
+  <section class="panel" id="p-ev" role="tabpanel" aria-labelledby="t-ev" hidden>
+    <div class="step">
+      <h2>How the method was tested</h2>
+      <p class="sub">The project’s own results on real NSE prices (30 independent runs of each method). The app uses <b>Hybrid+archive</b>.</p>
+      <div class="card cmp-scroll"><table id="evTbl"></table></div>
+      <p id="evWin"></p>
+    </div>
+    <div class="step">
+      <h2>The honest part: out of sample</h2>
+      <p class="sub">We rebalanced every quarter for 15 quarters using only past data, then looked at what really happened.</p>
+      <div class="card cmp-scroll"><table id="wfTbl"></table></div>
+      <p><b>Take-away:</b> the method finds better-spread trade-offs, but better-looking estimates did not turn into better real returns, because expected returns estimated from past prices are noisy. That is why the app asks you to weigh risk and cost rather than trust the return number.</p>
+    </div>
+  </section>
+
+  <!-- ============== ABOUT ============== -->
+  <section class="panel" id="p-ab" role="tabpanel" aria-labelledby="t-ab" hidden>
+    <div class="step">
+      <h2>What this is</h2>
+      <p>PortfolioPilot is a student project (Optimization Techniques). It treats rebalancing as a three-goal problem (return, risk, trading cost) with real-world rules, and shows the best trade-offs.</p>
+      <h2>Limits you should know</h2>
+      <ul class="sub" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+        <li><b>Not investment advice.</b> It is an educational tool.</li>
+        <li>Expected returns are plain averages of past prices; they are noisy and optimistic.</li>
+        <li>Costs are proportional estimates; they leave out tax, bid-ask spread and market impact.</li>
+        <li>30 large NSE stocks only, long-only, at most 10 holdings.</li>
+        <li>The default “current portfolio” is a made-up example; edit it to match yours.</li>
+        <li>One click uses one frozen snapshot; it is not a live feed.</li>
+      </ul>
+      <h2>How an answer is produced</h2>
+      <ol class="sub" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+        <li>Freeze prices and estimate return and risk from the last ~3 years.</li>
+        <li>Search with NSGA-II (an evolutionary algorithm) for which stocks to hold.</li>
+        <li>Polish the weights exactly with a convex solver.</li>
+        <li>Keep the non-dominated portfolios, choose a few well-spread ones, and explain them.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+let D = { byk: {}, asof: "", window: 756, amount: 1000000 };
+let CTX = null;
+const $ = (id) => document.getElementById(id);
+const state = { k: 5, sel: 0, amount: 1000000 };
+
+function inr(x) {
+  const neg = x < 0; let s = String(Math.round(Math.abs(x)));
+  if (s.length > 3) { let h = s.slice(0, -3), t = s.slice(-3), parts = [];
+    while (h.length > 2) { parts.unshift(h.slice(-2)); h = h.slice(0, -2); }
+    if (h) parts.unshift(h); s = parts.join(",") + "," + t; }
+  return (neg ? "-" : "") + "₹" + s;
+}
+const pct = (x, d = 1) => (100 * x).toFixed(d) + "%";
+const pts = (x) => (x >= 0 ? "+" : "") + (100 * x).toFixed(1);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function fmtDate(s) { const d = new Date(s + "T00:00:00"); return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); }
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ("Request failed (" + r.status + ")"));
+  return j;
+}
+
+/* ---------- tabs ---------- */
+const tabs = [["t-main", "p-main"], ["t-ev", "p-ev"], ["t-ab", "p-ab"]];
+tabs.forEach(([t, p]) => $(t).addEventListener("click", () => {
+  tabs.forEach(([t2, p2]) => { $(t2).setAttribute("aria-selected", t2 === t); $(p2).hidden = p2 !== p; });
+}));
+$("themeBtn").addEventListener("click", () => {
+  const r = document.documentElement; const dark = r.getAttribute("data-theme") === "dark" ||
+    (!r.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-theme", dark ? "light" : "dark"); drawChart();
+});
+
+/* ---------- step 1: portfolio ---------- */
+function fillSources() {
+  $("src").innerHTML = CTX.sources.map(s => `<option value="${s.id}">${esc(s.label)} · ${fmtDate(s.asof)}</option>`).join("");
+  $("src").value = CTX.sources[CTX.sources.length - 1].id;
+}
+function holdingsTotal() {
+  const v = [...document.querySelectorAll(".hin")].map(i => Math.max(0, Number(i.value) || 0));
+  const tot = v.reduce((a, b) => a + b, 0);
+  $("holdTotal").textContent = tot <= 0 ? "Enter at least one holding." :
+    Math.abs(tot - 100) > 0.05 ? `Holdings add up to ${tot.toFixed(1)}%. They will be scaled to 100%.` : "Holdings add up to 100%.";
+  return v;
+}
+function syncAmount() { state.amount = Math.max(10000, Number($("amt").value) || 1000000); $("amtFmt").textContent = "= " + inr(state.amount); }
+$("amt").addEventListener("input", () => { syncAmount(); if (!$("results").hidden) render(); });
+syncAmount();
+
+/* ---------- step 2: rebalance ---------- */
+$("go").addEventListener("click", async () => {
+  const hold = holdingsTotal();
+  if (hold.reduce((a, b) => a + b, 0) <= 0) { $("status").innerHTML = '<div class="banner err">Enter at least one holding first.</div>'; return; }
+  $("go").disabled = true; $("empty").hidden = true; $("results").hidden = true;
+  $("status").innerHTML = '<div class="banner snap"><span class="spin"></span>Taking a snapshot of the market and searching for the best options… (about 10 to 60 seconds)</div>';
+  try {
+    const res = await api("/api/rebalance", { holdings: hold, source: $("src").value });
+    D = res; state.sel = Math.min(state.sel, state.k - 1);
+    $("status").innerHTML = ""; $("results").hidden = false;
+    $("snapBanner").innerHTML = `<b>Snapshot taken.</b> Prices up to <b>${fmtDate(D.asof)}</b> are frozen. Expected returns and risk are estimated from the last <b>${D.window}</b> trading days (about 3 years). Nothing updates on its own; press Rebalance again for a new snapshot.`;
+    render(); $("results").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  } catch (e) {
+    $("status").innerHTML = `<div class="banner err"><b>Could not rebalance.</b> ${esc(e.message)}</div>`; $("empty").hidden = false;
+  } finally { $("go").disabled = false; }
+});
+$("refresh").addEventListener("click", async () => {
+  $("refresh").disabled = true; $("refMsg").textContent = "Contacting Yahoo Finance…";
+  try { CTX = await api("/api/refresh", {}); fillSources(); $("refMsg").textContent = "Latest prices downloaded."; }
+  catch (e) { $("refMsg").textContent = "Could not download prices (" + e.message + "). The saved prices still work."; }
+  finally { $("refresh").disabled = false; }
+});
+
+/* ---------- step 3 + 4 ---------- */
+$("k").addEventListener("input", () => { state.k = +$("k").value; $("kVal").textContent = state.k; state.sel = Math.min(state.sel, state.k - 1); render(); });
+const cur = () => D.byk[state.k].cur, opts = () => D.byk[state.k].opts;
+const costInr = (o) => o.cost * state.amount;
+
+function render() {
+  const R = D.byk[state.k];
+  $("foundTxt").innerHTML = `We found <b>${R.n_front}</b> best-trade-off portfolios and kept the <b>${R.opts.length}</b> that are most different from each other and clearly worth considering. They run from the safest to the highest return.`;
+  drawChart(); drawTable(); drawBtns(); drawDetail();
+  $("rules").innerHTML = "✓ <b>All options satisfy every rule</b> (each: at most 10 stocks, at most 20% in one stock, at most 40% in one sector, at least 3% in any stock held, fully invested, no short-selling).";
+  $("why").innerHTML = `<li>The optimiser returned <b>${R.n_front}</b> portfolios where you cannot improve one of return, risk or cost without hurting another (the Pareto front).</li>
+   <li>To keep the choice manageable we hid portfolios that barely change anything, that do not beat today by at least 0.5 points of return or risk, or that are worse on both return and risk and only a few rupees cheaper to trade into. <b>${R.n_cand}</b> remained.</li>
+   <li>From those we picked <b>${R.opts.length}</b> that are spread out from safest to highest return, always including the lowest-risk, the highest-return and the best all-round (balanced) one.</li>
+   <li>The same prices and holdings always give the same answer.</li>`;
+}
+
+/* chart: one linear scale per axis, every tick is a real value */
+function niceTicks(lo, hi, n) {
+  const span = hi - lo, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+  const t = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) t.push(+v.toFixed(6)); return t;
+}
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function drawChart() {
+  if ($("results").hidden) return;
+  const O = opts(), C = cur(), W = 900, H = 460, m = { l: 64, r: 28, t: 18, b: 56 };
+  const xs = O.map(o => o.vol * 100).concat(C.vol * 100), ys = O.map(o => o.ret * 100).concat(C.ret * 100);
+  const x0 = Math.floor(Math.min(...xs) - 1), x1 = Math.ceil(Math.max(...xs) + 1.5), y0 = Math.floor(Math.min(...ys) - 3), y1 = Math.ceil(Math.max(...ys) + 3);
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let s = "";
+  niceTicks(y0, y1, 6).forEach(v => { s += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="${css("--line")}" stroke-width="1"/><text x="${m.l - 10}" y="${Y(v) + 4}" text-anchor="end" font-size="13">${v}%</text>`; });
+  niceTicks(x0, x1, 7).forEach(v => { s += `<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${H - m.b}" stroke="${css("--line")}" stroke-width="1" stroke-dasharray="2 4"/><text x="${X(v)}" y="${H - m.b + 20}" text-anchor="middle" font-size="13">${v}%</text>`; });
+  s += `<text x="${(m.l + W - m.r) / 2}" y="${H - 10}" text-anchor="middle" font-size="14">Risk: how much the value swings (% a year) →</text>`;
+  s += `<text transform="translate(16 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle" font-size="14">Expected return (% a year) →</text>`;
+  const cx = X(C.vol * 100), cy = Y(C.ret * 100);
+  s += `<rect x="${m.l}" y="${m.t}" width="${cx - m.l}" height="${cy - m.t}" fill="${css("--teal")}" opacity="0.10"/>`;
+  s += `<text x="${m.l + 10}" y="${m.t + 20}" font-size="13" fill="${css("--teal")}" style="fill:${css("--teal")}">Better than today on both return and risk</text>`;
+  s += `<polyline points="${O.map(o => X(o.vol * 100) + "," + Y(o.ret * 100)).join(" ")}" fill="none" stroke="${css("--ink3")}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>`;
+  s += `<g><path d="M${cx} ${cy - 11} L${cx + 11} ${cy} L${cx} ${cy + 11} L${cx - 11} ${cy} Z" fill="${css("--ink")}" stroke="${css("--surface")}" stroke-width="2"/><text x="${cx}" y="${cy + 30}" text-anchor="middle" font-size="13" style="fill:${css("--ink")};font-weight:600">Your portfolio today</text></g>`;
+  O.forEach((o, i) => {
+    const px = X(o.vol * 100), py = Y(o.ret * 100), on = i === state.sel, last = i === O.length - 1;
+    const nx = last ? null : X(O[i + 1].vol * 100), above = last || (nx - px) < 90;
+    const tuck = above && !last, lx = tuck ? px + 10 : above ? px : px + 24, ly = above ? py - 26 : py + 5, anchor = tuck ? "end" : above ? "middle" : "start";
+    s += `<g class="dot" tabindex="0" role="button" aria-label="Option ${o.n}, ${o.label}: return ${pct(o.ret)}, risk ${pct(o.vol)}" data-i="${i}">
+      <circle class="ring" cx="${px}" cy="${py}" r="${on ? 21 : 18}" fill="none" stroke="${on ? css("--ink") : "transparent"}" stroke-width="2.5"/>
+      <circle cx="${px}" cy="${py}" r="16" fill="${css("--teal")}" stroke="${css("--surface")}" stroke-width="2"/>
+      <text x="${px}" y="${py + 5}" text-anchor="middle" font-size="14" style="fill:#fff;font-weight:600;font-family:var(--mono)">${o.n}</text>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="13.5" style="fill:${css("--ink")};font-weight:${on ? 600 : 500}">${o.label}</text></g>`;
+  });
+  $("chart").innerHTML = s;
+  const tip = $("tip"), card = $("chartCard");
+  $("chart").querySelectorAll(".dot").forEach(g => {
+    const i = +g.dataset.i, o = O[i];
+    const show = (ev) => { const r = card.getBoundingClientRect(), gr = g.getBoundingClientRect();
+      tip.hidden = false; tip.innerHTML = `<b>Option ${o.n} · ${o.label}</b><br>Expected return: ${pct(o.ret)}<br>Risk: ${pct(o.vol)}<br>Cost to trade: ${inr(costInr(o))}`;
+      let left = gr.left - r.left + gr.width / 2 + 16, top = gr.top - r.top - 8;
+      if (left + 240 > r.width) left = gr.left - r.left - 250; tip.style.left = Math.max(4, left) + "px"; tip.style.top = Math.max(4, top) + "px"; };
+    g.addEventListener("mouseenter", show); g.addEventListener("focus", show);
+    g.addEventListener("mouseleave", () => tip.hidden = true); g.addEventListener("blur", () => tip.hidden = true);
+    g.addEventListener("click", () => { state.sel = i; render(); });
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); state.sel = i; render(); } });
+  });
+}
+function drawTable() {
+  const O = opts(), C = cur();
+  const rows = [["Name", "Today", ...O.map(o => o.label)],
+    ["Expected return", pct(C.ret), ...O.map(o => pct(o.ret))],
+    ["Risk (swings)", pct(C.vol), ...O.map(o => pct(o.vol))],
+    ["Rough bad-year result", pct(C.ret - C.vol), ...O.map(o => pct(o.bad))],
+    ["Cost to trade", "₹0", ...O.map(o => inr(costInr(o)))],
+    ["Stocks held", C.n_hold, ...O.map(o => o.n_hold)],
+    ["Biggest holding", pct(C.max_pos, 0), ...O.map(o => pct(o.max_pos, 0))]];
+  const head = `<thead><tr><th></th><th>Today</th>${O.map((o, i) => `<th class="${i === state.sel ? "sel" : ""}">Option ${o.n}</th>`).join("")}</tr></thead>`;
+  $("cmp").innerHTML = head + "<tbody>" + rows.map(r => `<tr><td>${r[0]}</td>${r.slice(1).map((c, j) => `<td class="num ${j - 1 === state.sel ? "sel" : ""}">${c}</td>`).join("")}</tr>`).join("") + "</tbody>";
+}
+function drawBtns() {
+  $("optBtns").innerHTML = opts().map((o, i) => `<button type="button" class="opt" data-i="${i}" aria-pressed="${i === state.sel}"><span class="n">OPTION ${o.n}</span><span class="l">${o.label}</span><span class="v num">${pct(o.ret)} return · ${pct(o.vol)} risk</span></button>`).join("");
+  $("optBtns").querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => { state.sel = +b.dataset.i; render(); }));
+}
+function drawDetail() {
+  const o = opts()[state.sel], t = o.text, amt = state.amount;
+  const dv = Math.abs(o.d_vol) < 0.0005 ? "same risk" : pts(o.d_vol) + " pts vs today";
+  const trades = o.trades.map(r => ({ ...r, amt: Math.abs(r.sug - r.now) * amt }));
+  const mx = Math.max(...trades.map(r => Math.max(r.now, r.sug)), 0.01);
+  const bars = trades.map(r => `<div class="brow"><div class="nm" title="${r.s}">${r.s}</div><div><div class="bar now" style="width:${r.now / mx * 100}%"></div><div class="bar sug" style="width:${r.sug / mx * 100}%"></div></div></div>`).join("");
+  const rowsHtml = trades.map(r => `<tr><td><span class="pill ${r.a.toLowerCase()}">${r.a}</span></td><td>${r.s}</td><td class="muted">${r.sec.replace("_", " ")}</td><td class="r num">${pct(r.now)}</td><td class="r num">${pct(r.sug)}</td><td class="r num">${r.a === "Hold" ? "–" : inr(r.amt)}</td></tr>`).join("");
+  const vsNow = t.vs_now.replace("{INR}", inr(costInr(o)));
+  $("detail").innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:32px">
+      <div class="metrics">
+        <div class="metric"><div class="t">Expected return</div><div class="big">${pct(o.ret)}</div><div class="d ${o.d_ret >= 0 ? "good" : "bad"}">${pts(o.d_ret)} pts vs today</div></div>
+        <div class="metric"><div class="t">Risk</div><div class="big">${pct(o.vol)}</div><div class="d ${o.d_vol <= 0.0005 ? "good" : "bad"}">${dv}</div></div>
+        <div class="metric"><div class="t">Cost to trade</div><div class="big">${inr(costInr(o))}</div><div class="d muted">${(o.cost * 100).toFixed(2)}% of your money</div></div>
+        <div class="metric"><div class="t">Stocks held</div><div class="big">${o.n_hold}</div><div class="d muted">biggest ${pct(o.max_pos, 0)}</div></div>
+      </div>
+      <div class="detail">
+        <div>
+          <h3 style="margin-bottom:16px">Option ${o.n} · ${o.label}</h3>
+          <p><b class="k">What it is.</b> ${t.what}</p>
+          <p><b class="k">Against today.</b> ${vsNow}</p>
+          ${t.step ? `<p><b class="k">Step up from the previous option.</b> ${t.step}</p>` : ""}
+          <p><b class="k">When to choose it.</b> ${t.choose}</p>
+          <p><b>${t.watch}</b></p>
+          ${o.top.length ? `<p><b class="k">Largest positions:</b> ${o.top.map(a => a[0] + " " + pct(a[1], 0)).join(", ")}</p>` : ""}
+        </div>
+        <div>
+          <div class="legend" style="margin-bottom:14px"><span><i style="background:var(--line)"></i>Now</span><span><i style="background:var(--teal)"></i>Suggested</span></div>
+          <div class="bars">${bars}</div>
+        </div>
+      </div>
+      <div><h3 style="margin-bottom:14px">Trades to make</h3>
+        <div class="tbl-scroll" style="max-height:340px"><table><thead><tr><th>Action</th><th>Stock</th><th>Sector</th><th class="r">Now</th><th class="r">Suggested</th><th class="r">Amount</th></tr></thead><tbody>${rowsHtml}</tbody></table></div></div>
+    </div>`;
+}
+
+/* ---------- evidence ---------- */
+function renderEvidence(V) {
+  if (!V.available) { $("evTbl").innerHTML = "<tbody><tr><td>Run the experiments first (results/real/summary.csv not found).</td></tr></tbody>"; return; }
+  const label = { WeightedSum: "WeightedSum (the baseline to beat)", "Hybrid+archive": "Hybrid+archive (used in this app)" };
+  $("evTbl").innerHTML = `<thead><tr><th>Method</th><th class="r">Front quality (hypervolume, higher is better)</th><th class="r">Distance to best known (IGD, lower is better)</th><th class="r">Seconds per run</th></tr></thead><tbody>` +
+    V.rows.map(r => `<tr><td${r.m === "Hybrid+archive" ? ' style="font-weight:600"' : ""}>${label[r.m] || r.m}</td><td class="r num">${r.hv.toFixed(3)}</td><td class="r num">${r.igd.toFixed(3)}</td><td class="r num">${r.t.toFixed(2)}</td></tr>`).join("") + "</tbody>";
+  $("evWin").innerHTML = `<b>Hybrid + archive beat the simple baseline in ${V.wins} of ${V.seeds} runs</b> on front quality. Plain NSGA-II without the convex step did not (0 of ${V.seeds}).`;
+  $("wfTbl").innerHTML = V.wf ? `<thead><tr><th>Strategy</th><th class="r">Final wealth (start = 1.00)</th><th class="r">Predicted yearly return</th><th class="r">Actual yearly return</th></tr></thead><tbody>` +
+    V.wf.map(r => `<tr><td>${r.s}</td><td class="r num">${r.w.toFixed(3)}</td><td class="r num">${pct(r.p)}</td><td class="r num">${pct(r.r)}</td></tr>`).join("") + "</tbody>" : "";
+}
+
+/* ---------- start ---------- */
+(async function init() {
+  try {
+    CTX = await api("/api/context");
+    $("holdTbl").querySelector("tbody").innerHTML = CTX.holdings.map((h, i) =>
+      `<tr><td>${esc(h.stock)}</td><td class="muted">${esc(h.sector.replace("_", " "))}</td><td class="r"><input class="hin num" type="number" min="0" max="100" step="0.5" value="${h.pct}" aria-label="Holding percent for ${esc(h.stock)}"></td></tr>`).join("");
+    document.querySelectorAll(".hin").forEach(i => i.addEventListener("input", holdingsTotal)); holdingsTotal();
+    fillSources();
+    renderEvidence(await api("/api/evidence"));
+  } catch (e) {
+    $("status").innerHTML = `<div class="banner err"><b>The app could not load its data.</b> ${esc(e.message)}</div>`;
+  }
+})();
+</script>
+</body>
+</html>

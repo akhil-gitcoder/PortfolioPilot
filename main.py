@@ -5,6 +5,7 @@
   python main.py figures [--tag T]      # make figures/ from results/<tag>/
   python main.py inspect [--tag T] [--method M] [--pick knee|maxret|minvol|minpath]
                                         # print one portfolio: weights, trades, return, risk, cost
+  python main.py serve [--port 8501]    # web app (open the printed address in a browser)
   python main.py walkforward --source real --tag real   # out-of-sample test (add --rule ratio for the 2nd rule)
   python main.py all                    # data check + experiment + figures
 """
@@ -78,6 +79,11 @@ def cmd_inspect(args):
     print(t[(t.current > 0) | (t.target > 1e-8)].sort_values("target", ascending=False).round(4).to_string(index=False))
 
 
+def cmd_serve(args):
+    from frontend.server import serve
+    serve(port=args.port, open_browser=not args.no_browser)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -94,6 +100,8 @@ def main():
     p = sub.add_parser("inspect"); p.add_argument("--tag", default="synthetic")
     p.add_argument("--method", default="Hybrid"); p.add_argument("--pick", default="knee",
                     choices=["knee", "maxret", "minvol", "minpath"]); p.set_defaults(f=cmd_inspect)
+    p = sub.add_parser("serve"); p.add_argument("--port", type=int, default=8501)
+    p.add_argument("--no-browser", action="store_true"); p.set_defaults(f=cmd_serve)
     p = sub.add_parser("all"); p.add_argument("--seeds", type=int); p.add_argument("--evals", type=int)
     p.add_argument("--workers", type=int, default=4); p.add_argument("--source"); p.add_argument("--tag")
     p.set_defaults(f=lambda a: (cmd_data(a), cmd_experiment(a),
