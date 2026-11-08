@@ -7,7 +7,9 @@
   "seeds_NSGA2_hv_greater_than_WS": 0,
   "seeds_NSGA2+current_hv_greater_than_WS": 0,
   "seeds_NSGA2-tuned_hv_greater_than_WS": 0,
+  "seeds_NSGA2-tuned+archive_hv_greater_than_WS": 0,
   "seeds_Hybrid_hv_greater_than_WS": 21,
+  "seeds_Hybrid+archive_hv_greater_than_WS": 30,
   "MWU_NSGA2_vs_RandomSearch": {
     "U": 617.0,
     "p": 0.013831619802975413,
@@ -28,6 +30,16 @@
     "p": 3.0198593591621564e-11,
     "median_diff": 0.08145072344174287
   },
+  "MWU_NSGA2-tuned+archive_vs_NSGA2-tuned": {
+    "U": 900.0,
+    "p": 3.0198593591621564e-11,
+    "median_diff": 0.04171441810732779
+  },
+  "MWU_Hybrid+archive_vs_Hybrid": {
+    "U": 900.0,
+    "p": 3.0198593591621564e-11,
+    "median_diff": 0.023809637574223386
+  },
   "c_metric_median_run": {
     "RandomSearch": {
       "C(WS,method)": 0.8941176470588236,
@@ -45,8 +57,16 @@
       "C(WS,method)": 0.6,
       "C(method,WS)": 0.0
     },
+    "NSGA2-tuned+archive": {
+      "C(WS,method)": 0.41,
+      "C(method,WS)": 0.0
+    },
     "Hybrid": {
       "C(WS,method)": 0.22053231939163498,
+      "C(method,WS)": 0.0
+    },
+    "Hybrid+archive": {
+      "C(WS,method)": 0.15578947368421053,
       "C(method,WS)": 0.0
     }
   }
