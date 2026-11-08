@@ -1,0 +1,39 @@
+{
+  "data_source": "real",
+  "rule": "knee",
+  "horizon_days": 63,
+  "paths": 5,
+  "n_periods": 15,
+  "pairs": {
+    "Hybrid_minus_WeightedSum": {
+      "mean_period_return_diff": 0.0002932698303715928,
+      "std_error": 0.0010060402206835033,
+      "periods_A_better": 6,
+      "n_periods": 15
+    },
+    "Hybrid_minus_EqualWeight": {
+      "mean_period_return_diff": -0.009399766234135323,
+      "std_error": 0.009719120854237616,
+      "periods_A_better": 5,
+      "n_periods": 15
+    },
+    "Hybrid_minus_DoNothing": {
+      "mean_period_return_diff": 0.00042566009938570633,
+      "std_error": 0.015096609454225916,
+      "periods_A_better": 8,
+      "n_periods": 15
+    },
+    "WeightedSum_minus_EqualWeight": {
+      "mean_period_return_diff": -0.009693036064506918,
+      "std_error": 0.009830283577704931,
+      "periods_A_better": 4,
+      "n_periods": 15
+    },
+    "NSGA2_minus_WeightedSum": {
+      "mean_period_return_diff": 0.002355266690066794,
+      "std_error": 0.00240198676332523,
+      "periods_A_better": 11,
+      "n_periods": 15
+    }
+  }
+}

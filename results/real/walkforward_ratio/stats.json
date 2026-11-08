@@ -1,0 +1,39 @@
+{
+  "data_source": "real",
+  "rule": "ratio",
+  "horizon_days": 63,
+  "paths": 5,
+  "n_periods": 15,
+  "pairs": {
+    "Hybrid_minus_WeightedSum": {
+      "mean_period_return_diff": 0.0006875253671747087,
+      "std_error": 0.0012306511578595292,
+      "periods_A_better": 8,
+      "n_periods": 15
+    },
+    "Hybrid_minus_EqualWeight": {
+      "mean_period_return_diff": -0.01057804800868503,
+      "std_error": 0.008237676345982372,
+      "periods_A_better": 4,
+      "n_periods": 15
+    },
+    "Hybrid_minus_DoNothing": {
+      "mean_period_return_diff": -0.0007526216751640007,
+      "std_error": 0.01477727775087112,
+      "periods_A_better": 8,
+      "n_periods": 15
+    },
+    "WeightedSum_minus_EqualWeight": {
+      "mean_period_return_diff": -0.011265573375859738,
+      "std_error": 0.008184685380065533,
+      "periods_A_better": 5,
+      "n_periods": 15
+    },
+    "NSGA2_minus_WeightedSum": {
+      "mean_period_return_diff": 0.003111586826130762,
+      "std_error": 0.0034413133911355216,
+      "periods_A_better": 8,
+      "n_periods": 15
+    }
+  }
+}
