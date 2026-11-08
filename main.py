@@ -5,6 +5,7 @@
   python main.py figures [--tag T]      # make figures/ from results/<tag>/
   python main.py inspect [--tag T] [--method M] [--pick knee|maxret|minvol|minpath]
                                         # print one portfolio: weights, trades, return, risk, cost
+  python main.py walkforward --source real --tag real   # out-of-sample test (add --rule ratio for the 2nd rule)
   python main.py all                    # data check + experiment + figures
 """
 import argparse
@@ -35,6 +36,14 @@ def cmd_experiment(args):
     cmd = [sys.executable, str(ROOT / "experiments" / "run_experiments.py"), "--workers", str(args.workers)]
     if args.seeds: cmd += ["--seeds", str(args.seeds)]
     if args.evals: cmd += ["--evals", str(args.evals)]
+    if args.source: cmd += ["--source", args.source]
+    if args.tag: cmd += ["--tag", args.tag]
+    subprocess.check_call(cmd)
+
+
+def cmd_walkforward(args):
+    cmd = [sys.executable, str(ROOT / "experiments" / "run_walkforward.py"), "--workers", str(args.workers),
+           "--paths", str(args.paths), "--rule", args.rule, "--horizon", str(args.horizon)]
     if args.source: cmd += ["--source", args.source]
     if args.tag: cmd += ["--tag", args.tag]
     subprocess.check_call(cmd)
@@ -77,6 +86,10 @@ def main():
     p.add_argument("--seeds", type=int); p.add_argument("--evals", type=int)
     p.add_argument("--workers", type=int, default=4); p.add_argument("--source"); p.add_argument("--tag")
     p.set_defaults(f=cmd_experiment)
+    p = sub.add_parser("walkforward")
+    p.add_argument("--paths", type=int, default=5); p.add_argument("--rule", default="knee", choices=["knee", "ratio"])
+    p.add_argument("--horizon", type=int, default=63); p.add_argument("--workers", type=int, default=4)
+    p.add_argument("--source"); p.add_argument("--tag"); p.set_defaults(f=cmd_walkforward)
     p = sub.add_parser("figures"); p.add_argument("--tag", default="synthetic"); p.set_defaults(f=cmd_figures)
     p = sub.add_parser("inspect"); p.add_argument("--tag", default="synthetic")
     p.add_argument("--method", default="Hybrid"); p.add_argument("--pick", default="knee",
