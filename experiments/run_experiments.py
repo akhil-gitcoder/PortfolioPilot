@@ -6,7 +6,9 @@ Methods (all use the SAME problem, decoder and constraints):
   NSGA2               plain NSGA-II, random-key encoding
   NSGA2+current       NSGA-II with the current portfolio injected in generation 0
   NSGA2-tuned         + sparse initial supports + support-reset mutation (tuned on dev seeds 1-3)
+  NSGA2-tuned+archive NSGA2-tuned + external archive of all non-dominated solutions (200 max)
   Hybrid              NSGA2-tuned, then: the evolved front is polished by exact convex solves (CVXPY)
+  Hybrid+archive      NSGA2-tuned+archive, then the same polish
   WeightedSum         relax-and-round baseline (deterministic -> run once)
 
 Outputs (results/<tag>/): per_seed_metrics.csv, summary.csv, summary.md, stats.json,
@@ -37,8 +39,20 @@ from src.metrics import hypervolume, igd, normalize, spacing, c_metric  # noqa: 
 from src.multiobjective.pareto import nondominated_mask          # noqa: E402
 from src.reference.exact_front import exact_front                # noqa: E402
 
-STOCHASTIC = ["RandomSearch", "NSGA2", "NSGA2+current", "NSGA2-tuned", "Hybrid"]
+STOCHASTIC = ["RandomSearch", "NSGA2", "NSGA2+current", "NSGA2-tuned", "NSGA2-tuned+archive",
+              "Hybrid", "Hybrid+archive"]
 _CTX = {}
+
+
+def _pool_nd(fronts):
+    """Non-dominated set of many fronts pooled together, built one front at a time.
+    (Pooling everything at once needs an N x N dominance matrix, which runs out of memory
+    when the fronts are large.)"""
+    bk = np.zeros((0, 3))
+    for F in fronts:
+        merged = np.vstack([bk, F])
+        bk = merged[nondominated_mask(merged)]
+    return bk
 
 
 def _init(cfg, source):
@@ -53,6 +67,7 @@ def _run_one(args):
     n_evals, ck = nb["n_evals"], ex["checkpoint_every_evals"]
     kw = dict(pop_size=nb["pop_size"], n_evals=n_evals, seed=seed, eta_c=nb["eta_c"],
               eta_m=nb["eta_m"], pc=nb["pc"], checkpoint_every=ck)
+    arch = nb["archive_size"] if method.endswith("+archive") else None
     t0 = time.perf_counter()
     if method == "RandomSearch":
         r = run_random_search(prob, n_evals=n_evals, seed=seed, checkpoint_every=ck)
@@ -60,10 +75,12 @@ def _run_one(args):
         r = run_nsga2(prob, **kw)
     elif method == "NSGA2+current":
         r = run_nsga2(prob, inject_current=True, **kw)
-    elif method == "NSGA2-tuned":
-        r = run_nsga2(prob, inject_current=True, sparse_init=True, reset_prob=nb["reset_prob"], **kw)
-    elif method == "Hybrid":
-        r = run_nsga2(prob, inject_current=True, sparse_init=True, reset_prob=nb["reset_prob"], **kw)
+    elif method in ("NSGA2-tuned", "NSGA2-tuned+archive"):
+        r = run_nsga2(prob, inject_current=True, sparse_init=True, reset_prob=nb["reset_prob"],
+                      archive_size=arch, **kw)
+    elif method in ("Hybrid", "Hybrid+archive"):
+        r = run_nsga2(prob, inject_current=True, sparse_init=True, reset_prob=nb["reset_prob"],
+                      archive_size=arch, **kw)
         X, F, _ = polish_front(prob, r["X"], r["F"])
         r["X"], r["F"] = X, F
         r["history"].append((n_evals, F.copy()))      # final point includes polish
@@ -118,7 +135,7 @@ def main():
     allF = np.vstack(list(fronts.values()))
     lo, hi = allF.min(0), allF.max(0)
     ref = np.full(3, ex["hv_ref"])
-    bk = allF[nondominated_mask(allF)]
+    bk = _pool_nd(fronts.values())
     bk_n = normalize(bk, lo, hi)
 
     rows = []
@@ -147,7 +164,8 @@ def main():
     for m in STOCHASTIC:
         stats[f"seeds_{m}_hv_greater_than_WS"] = int((hv_of(m) > stats["ws_hv"]).sum())
     pairs = [("NSGA2", "RandomSearch"), ("NSGA2+current", "NSGA2"), ("NSGA2-tuned", "NSGA2+current"),
-             ("Hybrid", "NSGA2-tuned")]
+             ("Hybrid", "NSGA2-tuned"),
+             ("NSGA2-tuned+archive", "NSGA2-tuned"), ("Hybrid+archive", "Hybrid")]
     for A, B in pairs:
         u = mannwhitneyu(hv_of(A), hv_of(B), alternative="two-sided")
         stats[f"MWU_{A}_vs_{B}"] = {"U": float(u.statistic), "p": float(u.pvalue),

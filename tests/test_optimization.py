@@ -60,3 +60,10 @@ def test_weighted_sum_baseline_obeys_same_constraints(problem):
     assert len(r["F"]) > 0
     assert (problem.violation(r["X"]) <= 1e-5).all()
     assert ((r["X"] > 1e-6).sum(axis=1) <= problem.K).all()
+
+
+def test_archive_is_feasible_nondominated_and_capped(problem):
+    r = run_nsga2(problem, pop_size=40, n_evals=800, seed=3, archive_size=25)
+    assert 3 < len(r["F"]) <= 25
+    assert (problem.violation(r["X"]) <= CV_TOL).all()
+    assert nondominated_mask(r["F"]).all()

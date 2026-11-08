@@ -19,7 +19,8 @@ import time
 
 import numpy as np
 
-from src.multiobjective.pareto import FEAS_TOL, nondominated_mask, rank_and_crowding
+from src.multiobjective.pareto import (FEAS_TOL, crowding_distance, nondominated_mask,
+                                       rank_and_crowding)
 
 
 def _tournament(rank, crowd, n_select, rng):
@@ -49,6 +50,26 @@ def polynomial_mutation(C, eta, pm, rng):
     return np.clip(C + mutate * delta, 0, 1)
 
 
+def _update_archive(XA, FA, X, F, CV, cap):
+    """External archive: every feasible non-dominated solution ever found (not only the
+    current population).  If it exceeds `cap`, the most crowded points are dropped first,
+    so the spread of the front is kept."""
+    feas = CV <= FEAS_TOL
+    if not feas.any():
+        return XA, FA
+    XA = np.vstack([XA, X[feas]])
+    FA = np.vstack([FA, F[feas]])
+    keep = nondominated_mask(FA)
+    XA, FA = XA[keep], FA[keep]
+    while cap and len(FA) > cap:
+        k = max(1, (len(FA) - cap) // 4)
+        drop = np.argsort(crowding_distance(FA))[:k]
+        mask = np.ones(len(FA), bool)
+        mask[drop] = False
+        XA, FA = XA[mask], FA[mask]
+    return XA, FA
+
+
 def _survivor_selection(F, CV, n_pop):
     rank, crowd = rank_and_crowding(F, CV)
     order = np.lexsort((-crowd, rank))      # sort by rank, then larger crowding first
@@ -58,7 +79,7 @@ def _survivor_selection(F, CV, n_pop):
 
 def run_nsga2(problem, pop_size=100, n_evals=10000, seed=0, eta_c=15, eta_m=20, pc=0.9,
               pm=None, checkpoint_every=500, lamarckian=False, inject_current=False, init_X=None,
-              sparse_init=False, reset_prob=0.0):
+              sparse_init=False, reset_prob=0.0, archive_size=None):
     """Run NSGA-II; returns a dict with the final feasible non-dominated set and history.
 
     Options (all OFF = plain NSGA-II with random-key encoding):
@@ -70,6 +91,9 @@ def run_nsga2(problem, pop_size=100, n_evals=10000, seed=0, eta_c=15, eta_m=20, 
                        between ceil(1/x_max) and min(K, 15), instead of ~90% of stocks held.
       reset_prob     : extra 'support' mutation: with this probability per child, one key is
                        reset to 0 (drop a stock) or to a random value (add a stock).
+      archive_size   : if set (e.g. 200), keep an external archive of every feasible non-dominated
+                       solution found during the run (capped at this size by crowding) and
+                       return it as the final front instead of the last population only.
       init_X         : optional (m, n) array of known portfolios (e.g. a baseline front) copied
                        into the initial population -> MEMETIC / seeded variant.  Must be
                        reported as a hybrid, never as pure NSGA-II.
@@ -98,12 +122,19 @@ def run_nsga2(problem, pop_size=100, n_evals=10000, seed=0, eta_c=15, eta_m=20, 
     X, F, CV = problem.evaluate_keys(keys)
     if lamarckian:
         keys = np.clip(X / problem.x_max, 0, 1)
+    XA, FA = np.zeros((0, n)), np.zeros((0, 3))
+    if archive_size:
+        XA, FA = _update_archive(XA, FA, X, F, CV, archive_size)
     evals = pop_size
     keep, rank, crowd = _survivor_selection(F, CV, pop_size)
     keys, X, F, CV = keys[keep], X[keep], F[keep], CV[keep]
     history = []
 
     def snapshot():
+        if archive_size:
+            if len(FA):
+                history.append((evals, FA.copy()))
+            return
         feas = CV <= FEAS_TOL
         if feas.any():
             Ff = F[feas]
@@ -126,6 +157,8 @@ def run_nsga2(problem, pop_size=100, n_evals=10000, seed=0, eta_c=15, eta_m=20, 
         if len(child) < pop_size:              # odd pop sizes
             child = np.vstack([child, rng.random((pop_size - len(child), n))])
         Xc, Fc, CVc = problem.evaluate_keys(child)
+        if archive_size:
+            XA, FA = _update_archive(XA, FA, Xc, Fc, CVc, archive_size)
         if lamarckian:
             child = np.clip(Xc / problem.x_max, 0, 1)
         evals += len(child)
@@ -142,5 +175,7 @@ def run_nsga2(problem, pop_size=100, n_evals=10000, seed=0, eta_c=15, eta_m=20, 
     feas = CV <= FEAS_TOL
     Xf, Ff = X[feas], F[feas]
     nd = nondominated_mask(Ff) if len(Ff) else np.zeros(0, bool)
+    if archive_size:
+        Xf, Ff, nd = XA, FA, np.ones(len(FA), bool)
     return {"X": Xf[nd], "F": Ff[nd], "evals": evals, "history": history,
             "runtime": time.perf_counter() - t0, "n_feasible_final_pop": int(feas.sum())}

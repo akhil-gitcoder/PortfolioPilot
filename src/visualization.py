@@ -9,8 +9,10 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 COLORS = {"WeightedSum": "#000000", "RandomSearch": "#9e9e9e", "NSGA2": "#1f77b4",
-          "NSGA2+current": "#17becf", "NSGA2-tuned": "#2ca02c", "Hybrid": "#d62728"}
-ORDER = ["RandomSearch", "NSGA2", "NSGA2+current", "NSGA2-tuned", "Hybrid", "WeightedSum"]
+          "NSGA2+current": "#17becf", "NSGA2-tuned": "#2ca02c", "Hybrid": "#d62728",
+          "NSGA2-tuned+archive": "#98df8a", "Hybrid+archive": "#ff7f0e"}
+ORDER = ["RandomSearch", "NSGA2", "NSGA2+current", "NSGA2-tuned", "NSGA2-tuned+archive", "Hybrid",
+         "Hybrid+archive", "WeightedSum"]
 
 
 def _load_front(res_dir, m):
@@ -23,7 +25,7 @@ def make_all(res_dir, fig_dir, label):
     note = f"[{label.upper()} data]"
     refs = json.load(open(res_dir / "reference_points.json"))
     dn, ew = refs["do_nothing"], refs["equal_weight_1_over_N"]
-    methods = ["WeightedSum", "RandomSearch", "NSGA2", "NSGA2-tuned", "Hybrid"]
+    methods = ["WeightedSum", "RandomSearch", "NSGA2", "NSGA2-tuned", "Hybrid", "Hybrid+archive"]
     fronts = {m: _load_front(res_dir, m) for m in methods}
 
     # 1) 2-D projections of the 3-D Pareto fronts
@@ -51,7 +53,7 @@ def make_all(res_dir, fig_dir, label):
     # 2) 3-D view
     fig = plt.figure(figsize=(7.5, 6))
     ax = fig.add_subplot(111, projection="3d")
-    for m in ["WeightedSum", "NSGA2", "Hybrid"]:
+    for m in ["WeightedSum", "NSGA2", "Hybrid", "Hybrid+archive"]:
         d = fronts[m]
         ax.scatter(d["volatility"], d["cost"], d["return"], s=10, color=COLORS[m], label=m, alpha=0.7)
     ax.set_xlabel("volatility"); ax.set_ylabel("cost"); ax.set_zlabel("return")
