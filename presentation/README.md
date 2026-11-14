@@ -1,2 +1,5 @@
-# Presentation
-Slides go in this folder (PDF and/or PPTX) before the deadline. Suggested order: problem, why multi-objective, formulation, methods, baseline, results with Pareto figure, statistics, out-of-sample honesty, limitations, conclusion.
+## Project Presentation
+
+[Download presentation PDF](https://raw.githubusercontent.com/akhil-gitcoder/PortfolioPilot/main/presentation/PortfolioPilot_Presentation.pdf)
+
+[Download editable PowerPoint](https://raw.githubusercontent.com/akhil-gitcoder/PortfolioPilot/main/presentation/PortfolioPilot_Presentation.pptx)
