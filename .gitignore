@@ -16,3 +16,5 @@ results/**/raw/
 
 # web app: downloaded price cache
 frontend/.cache/
+.vercel/
+.venv-vercel/
